@@ -4,6 +4,8 @@ library(pdftools)
 library(stringr)
 library(stringi)
 library(ggrepel)
+library(showtext)
+library(ggthemes)
 
 # Extract text from the PDF
 lotr_text <- pdf_text("C:/Users/austi/OneDrive/Desktop/R/R-Sandbox/data/lotr_text_full.pdf")
@@ -72,7 +74,7 @@ screen_time <- data.frame(
   character = c("frodo", "sam", "gandalf", "aragorn", "legolas", 
                 "gimli", "boromir", "merry", "pippin", "gollum", 
                 "sauron", "saruman", "faramir", "denethor", "eowyn", 
-                "theoden", "nazgul", "bilbo", "bombadil", "glorfindel", 
+                "theoden", "bilbo", "bombadil", "glorfindel", 
                 "elrond", "arwen", "galadriel", "wormtongue", "shadowfax", 
                 "treebeard", "shelob", "eomer", "balrog", "witch-king", 
                 "radagast", "haldir", "gothmog", "king of the dead", "isildur",
@@ -80,7 +82,7 @@ screen_time <- data.frame(
   screen_time = c(123.933, 80.5833, 88.3667, 96.1667, 47.9333,
                   19.85, 25.9, 36.2167, 45.6833, 42.4167,
                   4, 10.9667, 14.8167, 7.6833, 21.9667,
-                  31.65, NA, 13.6, 0, 0.5,
+                  31.65, 13.6, 0, 0.5,
                   15.0833, 18.6167, 11.4833, 7.1, 4,
                   10, 3.5, 13.3667, 2.75, 6.6,
                   0, 3.5667, 3.5, 1.9167, 2.5,
@@ -93,29 +95,71 @@ screen_time <- data.frame(
 lotr_counts_screen <- name_counts_df |> 
   inner_join(screen_time, by = "character")
 
-lotr_counts_screen$character <- str_to_title(lotr_counts_screen$character)
+lotr_counts_screen$character <- str_to_title(lotr_counts_screen$character) 
+
+lotr_counts_screen <- lotr_counts_screen |> 
+  mutate(character = case_when(
+    character == "Witch-King" ~ "Witch King",
+    character == "Bombadil" ~ "Tom Bombadil",
+    TRUE ~ character
+  ))
 
 # plotting ----------------------------------------------------------------
 
-# Calculate the reference y-value for each x-value
-lotr_counts_screen <- lotr_counts_screen %>%
-  mutate(
-    ref_y = (slope * log10(count)) + intercept,  # y-values of the line
-    color = ifelse(log10(screen_time) > ref_y, "OVER-represented in movies", "UNDER-represented in movies")
-  )
+font_add("Ringbearer", "fonts/RingbearerMedium-51mgZ.ttf")
+
+lotr_counts_screen <- lotr_counts_screen |> 
+  mutate(predicted = predict(lm(screen_time ~ count)),
+         color = ifelse(screen_time > predicted, "OVER-represented in movies", "UNDER-represented in movies"))
 
 ggplot(lotr_counts_screen, aes(x = count, y = screen_time)) +
-  geom_point(aes(color = color), size = 3, alpha = 0.7) +
-  scale_x_log10() +
-  scale_y_log10() +
-  geom_abline(intercept = -0.25, slope = 0.7, linetype = "dashed", linewidth = 1) +
-  geom_label_repel(aes(label = character), box.padding = 0.3) +
-  scale_color_manual(values = c("OVER-represented in movies" = "red", 
-                                "UNDER-represented in movies" = "blue")) +
-  theme_bw() +
+  geom_point(aes(color = color), size = 3.5, alpha = 0.45) +
+  scale_x_continuous(trans = "sqrt") +
+  scale_y_continuous(trans = "sqrt") +
+  geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted") +
+  geom_label_repel(aes(label = character), 
+                  box.padding = 0.5, 
+                  label.padding = 0.5,
+                  point.padding = 1.25,
+                  label.size = 0.5,
+                  min.segment.length = 0.25,
+                  segment.color = "grey50",
+                  segment.size = 1,
+                  size = 4,
+                  family = "Ringbearer",
+                  fill = "white") +
+  scale_color_manual(values = c("OVER-represented in movies" = "firebrick", 
+                                "UNDER-represented in movies" = "navyblue")) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(size=45, face="bold", hjust = 0.5,
+                                  margin = margin(15, 0, 15, 0))) +
+  ggtitle("Lord of the Rings Characters") +
+  theme(
+    plot.title = element_text(family = "Ringbearer", size = 45, face = "bold"),
+    #axis.text = element_blank(),
+    axis.text.x = element_text(angle = 0, size = 11, vjust = 4),
+    axis.text.y = element_text(angle = 0, size = 11, vjust = 1),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#fbfbf0", color = "#fbfbf0"),
+    plot.background = element_rect(fill = "#fbfbf0")
+  ) +
   labs(
-    title = "Lord of the Rings Characters with the Most Screen Time",
-    x = "Number of Mentions in Books (log scale)",
-    y = "Screen Time in Films (minutes) (log scale)",
+    x = "Number of Mentions in Books",
+    y = "Screen Time in Films (minutes)",
     color = ""
-  )
+  ) +
+  annotate("text", 
+           x = 100, y = 75, 
+           label = "OVER represented in movies", 
+           color = "firebrick", 
+           size = 6,
+           family = "Ringbearer") +
+  annotate("text", 
+           x = 1200, y = 15, 
+           label = "UNDER represented in movies", 
+           color = "navyblue", 
+           size = 6,
+           family = "Ringbearer")
+
+ggsave(filename = "lotr_characters.png")
