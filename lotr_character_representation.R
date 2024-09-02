@@ -6,6 +6,7 @@ library(stringi)
 library(ggrepel)
 library(showtext)
 library(ggthemes)
+library(sysfonts)
 
 # Extract text from the PDF
 lotr_text <- pdf_text("C:/Users/austi/OneDrive/Desktop/R/R-Sandbox/data/lotr_text_full.pdf")
@@ -106,7 +107,8 @@ lotr_counts_screen <- lotr_counts_screen |>
 
 # plotting ----------------------------------------------------------------
 
-font_add("Ringbearer", "fonts/RingbearerMedium-51mgZ.ttf")
+font_add("Ringbearer", "../fonts/RingbearerMedium-51mgZ.ttf")
+showtext_auto()
 
 lotr_counts_screen <- lotr_counts_screen |> 
   mutate(predicted = predict(lm(screen_time ~ count)),
@@ -116,16 +118,16 @@ ggplot(lotr_counts_screen, aes(x = count, y = screen_time)) +
   geom_point(aes(color = color), size = 3.5, alpha = 0.45) +
   scale_x_continuous(trans = "sqrt") +
   scale_y_continuous(trans = "sqrt") +
-  geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted") +
+  geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted", size = 1) +
   geom_label_repel(aes(label = character), 
-                  box.padding = 0.5, 
-                  label.padding = 0.5,
-                  point.padding = 1.25,
-                  label.size = 0.5,
-                  min.segment.length = 0.25,
+                  box.padding = 0.15, 
+                  point.padding = 0,
+                  label.padding = 0.25,
+                  label.size = 0.25,
+                  min.segment.length = 0.5,
                   segment.color = "grey50",
                   segment.size = 1,
-                  size = 4,
+                  size = 3.5,
                   family = "Ringbearer",
                   fill = "white") +
   scale_color_manual(values = c("OVER-represented in movies" = "firebrick", 
@@ -136,10 +138,12 @@ ggplot(lotr_counts_screen, aes(x = count, y = screen_time)) +
                                   margin = margin(15, 0, 15, 0))) +
   ggtitle("Lord of the Rings Characters") +
   theme(
-    plot.title = element_text(family = "Ringbearer", size = 45, face = "bold"),
+    plot.title = element_text(family = "Ringbearer", size = 40, face = "bold"),
     #axis.text = element_blank(),
-    axis.text.x = element_text(angle = 0, size = 11, vjust = 4),
-    axis.text.y = element_text(angle = 0, size = 11, vjust = 1),
+    axis.text.x = element_text(angle = 0, size = 8, vjust = 4),
+    axis.text.y = element_text(angle = 0, size = 8, vjust = 1),
+    axis.title.x = element_text(vjust = 0, size = 15),
+    axis.title.y = element_text(vjust = 0, size = 15),
     panel.grid = element_blank(),
     panel.background = element_rect(fill = "#fbfbf0", color = "#fbfbf0"),
     plot.background = element_rect(fill = "#fbfbf0")
@@ -147,19 +151,155 @@ ggplot(lotr_counts_screen, aes(x = count, y = screen_time)) +
   labs(
     x = "Number of Mentions in Books",
     y = "Screen Time in Films (minutes)",
-    color = ""
+    color = "",
+    caption = "Source: The Lord of the Rings, @Matthew Stewart"
   ) +
   annotate("text", 
-           x = 100, y = 75, 
-           label = "OVER represented in movies", 
+           x = 100, y = 85, 
+           label = "OVER represented \nin movies", 
            color = "firebrick", 
            size = 6,
            family = "Ringbearer") +
   annotate("text", 
-           x = 1200, y = 15, 
-           label = "UNDER represented in movies", 
+           x = 1300, y = 10, 
+           label = "UNDER represented \nin movies", 
            color = "navyblue", 
            size = 6,
            family = "Ringbearer")
 
-ggsave(filename = "lotr_characters.png")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggplot(lotr_counts_screen, aes(x = count, y = screen_time)) +
+  geom_point(aes(color = color), size = 3.5, alpha = 0.5) +
+  scale_x_continuous(trans = "sqrt") +
+  scale_y_continuous(trans = "sqrt") +
+  geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted", size = 1) +
+  geom_text_repel(aes(label = character), 
+                  box.padding = 0.4,
+                  point.padding = 0.4,
+                  min.segment.length = 0.45,
+                  force = 0.5,
+                  force_pull = 0.5,
+                  segment.color = "grey50",
+                  segment.size = 0.75,
+                  size = 4,
+                  family = "Ringbearer"
+  ) +
+  scale_color_manual(values = c("OVER-represented in movies" = "firebrick", 
+                                "UNDER-represented in movies" = "navyblue")) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(size=45, face="bold", hjust = 0.5,
+                                  margin = margin(15, 0, 15, 0))) +
+  ggtitle("Lord of the Rings Characters") +
+  theme(
+    plot.title = element_text(family = "Ringbearer", size = 40, face = "bold"),
+    #axis.text = element_blank(),
+    axis.text.x = element_text(angle = 0, size = 8, vjust = 4),
+    axis.text.y = element_text(angle = 0, size = 8, vjust = 1),
+    axis.title.x = element_text(vjust = 0, size = 15),
+    axis.title.y = element_text(vjust = 0, size = 15),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#fbfbf0", color = "#fbfbf0"),
+    plot.background = element_rect(fill = "#fbfbf0")
+  ) +
+  labs(
+    x = "Number of Mentions in Books",
+    y = "Screen Time in Films (minutes)",
+    color = "",
+    caption = "Source: The Lord of the Rings, @Matthew Stewart"
+  ) +
+  annotate("text", 
+           x = 100, y = 85, 
+           label = "OVER represented \nin movies", 
+           color = "firebrick", 
+           size = 6,
+           family = "Ringbearer") +
+  annotate("text", 
+           x = 1300, y = 10, 
+           label = "UNDER represented \nin movies", 
+           color = "navyblue", 
+           size = 6,
+           family = "Ringbearer")
+
+
+
+
+
+
+
+
+filtered_characters <- lotr_counts_screen |> 
+  filter(!character %in% c("Rosie Cotton", "Shadowfax", "Balrog", "Hama", "Gamling", "Isildur", "King Of The Dead"))
+
+
+
+
+ggplot(filtered_characters, aes(x = count, y = screen_time)) +
+  geom_point(aes(color = color), size = 3.5, alpha = 0.5) +
+  scale_x_continuous(trans = "sqrt") +
+  scale_y_continuous(trans = "sqrt") +
+  geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted", size = 1) +
+  geom_text_repel(aes(label = character), 
+                  box.padding = 0.5,
+                  point.padding = 0.4,
+                  label.padding = 0.18,
+                  min.segment.length = 0.45,
+                  force = 0.5,
+                  segment.color = "grey50",
+                  segment.size = 0.75,
+                  size = 3.8,
+                  family = "Ringbearer"
+  ) +
+  scale_color_manual(values = c("OVER-represented in movies" = "firebrick", 
+                                "UNDER-represented in movies" = "navyblue")) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(size=45, face="bold", hjust = 0.5,
+                                  margin = margin(15, 0, 15, 0))) +
+  ggtitle("Lord of the Rings Characters") +
+  theme(
+    plot.title = element_text(family = "Ringbearer", size = 40, face = "bold"),
+    #axis.text = element_blank(),
+    axis.text.x = element_text(angle = 0, size = 8, vjust = 4),
+    axis.text.y = element_text(angle = 0, size = 8, vjust = 1),
+    axis.title.x = element_text(vjust = 0, size = 15),
+    axis.title.y = element_text(vjust = 0, size = 15),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#fbfbf0", color = "#fbfbf0"),
+    plot.background = element_rect(fill = "#fbfbf0")
+  ) +
+  labs(
+    x = "Number of Mentions in Books",
+    y = "Screen Time in Films (minutes)",
+    color = "",
+    caption = "Source: The Lord of the Rings, @Matthew Stewart"
+  ) +
+  annotate("text", 
+           x = 100, y = 85, 
+           label = "OVER represented \nin movies", 
+           color = "firebrick", 
+           size = 6,
+           family = "Ringbearer") +
+  annotate("text", 
+           x = 1300, y = 10, 
+           label = "UNDER represented \nin movies", 
+           color = "navyblue", 
+           size = 6,
+           family = "Ringbearer")
