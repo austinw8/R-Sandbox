@@ -114,16 +114,19 @@ lotr_counts_screen <- lotr_counts_screen |>
   mutate(predicted = predict(lm(screen_time ~ count)),
          color = ifelse(screen_time > predicted, "OVER-represented in movies", "UNDER-represented in movies"))
 
-
+model <- lm(filtered_characters$screen_time ~ filtered_characters$count)
+intercept <- coef(model)[1]
+slope <- coef(model)[2]
 
 filtered_characters <- lotr_counts_screen |> 
   filter(!character %in% c("Rosie Cotton", "Shadowfax", "Balrog", "Hama", "Gamling", "Isildur", "King Of The Dead"))
 
 
 ggplot(filtered_characters, aes(x = count, y = screen_time)) +
-  geom_point(aes(color = color), size = 3.5, alpha = 0.5) +
+  geom_point(aes(), size = 3.5, alpha = 0.5) +
   scale_x_continuous(trans = "sqrt") +
   scale_y_continuous(trans = "sqrt") +
+  #geom_smooth(method = "lm") +
   geom_abline(intercept = 1.06, slope = 0.227, linetype = "dotted", size = 1) +
   geom_text_repel(aes(label = character), 
                   box.padding = 0.5,
